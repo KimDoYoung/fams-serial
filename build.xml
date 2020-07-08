@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="elfclients" default="all" basedir=".">
+	<description>
+		elfclients ( sftpClient, ftpClient, httpClient ) build  
+	</description>
+	
+	<property name="ant.build.javac.source" value="1.8"/>
+	<property name="ant.build.javac.target" value="1.8"/>
+	
+	<property name="dir.bin" location="/home/kdy987/bin/execute-jars" />
+	
+	<property name="dir.libs" location="../libs" />
+	<property name="dir.src" location="src" />
+	<property name="dir.build" location="build" />
+	<property name="dir.dist" location="dist" />
+	
+	<property name="main-class-server" value="kr.co.kalpa.fams.serial.server.Main" />
+	<property name="main-class-client" value="kr.co.kalpa.fams.serial.client.Main" />
+	
+	<property name="project-name-server" value="famsSerialServer" />
+	<property name="project-name-client" value="famsSerialClient" />
+	
+	<path id="library-jars">
+		<fileset dir="${dir.libs}" includes="**/*.jar"/>
+	</path>
+	
+	<target name="clean" description="delete generated directories" >
+		<delete dir="${dir.build}" />
+		<delete dir="${dir.dist}" />
+	</target>
+	<target name="init" depends="clean" description="generate directories" >
+		<tstamp/>
+		<mkdir dir="${dir.build}" />
+		<mkdir dir="${dir.build}/classes" />
+		<mkdir dir="${dir.dist}" />
+		<mkdir dir="${dir.dist}/libs" />
+	</target>
+	
+	<target name="checkout" depends="init" description="source checkout">
+	</target>
+	
+	<target name="compile-server" depends="checkout" description="fams serical server source compile" >
+		<javac srcdir="${dir.src}" destdir="${dir.build}/classes" classpathref="library-jars"
+					encoding="UTF-8" includeantruntime="false" deprecation="on" debug="on">
+			<exclude name="kr.co.kalpa.fams.serial.client/*.java" />
+		</javac>
+	</target>
+	<target name="compile-client" depends="checkout" description="fams serical client source compile" >
+		<javac srcdir="${dir.src}" destdir="${dir.build}/classes" classpathref="library-jars"
+					encoding="UTF-8" includeantruntime="false" deprecation="on" debug="on">
+			<exclude name="kr.co.kalpa.fams.serial.server/*.java" />
+		</javac>
+	</target>
+	
+	<target name="cp-dependencies-server">
+		<jar jarfile="${dir.dist}/libs/dependencies-serial-server.jar">
+			<zipgroupfileset dir="${dir.libs}">
+				<include name="commons-cli-1.4.jar" />
+				<include name="common-io-2.6.jar" />
+				<include name="jssc.jar" />
+			</zipgroupfileset>
+		</jar>
+	</target>
+
+	<target name="cp-dependencies-client">
+		<jar jarfile="${dir.dist}/libs/dependencies-serial-client.jar">
+			<zipgroupfileset dir="${dir.libs}">
+				<include name="commons-cli-1.4.jar" />
+				<include name="common-io-2.6.jar" />
+				<include name="jssc.jar" />
+			</zipgroupfileset>
+		</jar>
+	</target>
+
+	<target name="package-server" depends="compile-server, cp-dependencies-server" description="packaging server">
+		<jar jarfile="${dir.dist}/${project-name-server}.jar" basedir="${dir.build}/classes">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class-server}" />
+			</manifest>
+			<zipfileset src="${dir.dist}/libs/dependencies-serial-server.jar" excludes="META-INF/*.SF" />
+		</jar>
+		<copy file="${dir.dist}/${project-name-server}.jar" todir="${dir.bin}"/>
+	</target>
+	
+
+	<target name="package-client" depends="compile-client, cp-dependencies-client" description="packaging client">
+		<jar jarfile="${dir.dist}/${project-name-client}.jar" basedir="${dir.build}/classes">
+			<manifest>
+				<attribute name="Main-Class" value="${main-class-client}" />
+			</manifest>
+			<zipfileset src="${dir.dist}/libs/dependencies-serial-client.jar" excludes="META-INF/*.SF" />
+		</jar>
+		<copy file="${dir.dist}/${project-name-client}.jar" todir="${dir.bin}"/>
+	</target>
+	
+	<target name="server" depends="package-server" description="server build" />
+	<target name="client" depends="package-client" description="client build" />
+	
+	<target name="all" depends="server, client" description="fams serial server, client build"/>
+	
+</project>
